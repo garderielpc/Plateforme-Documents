@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Plateforme Documents</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 20px;
+      background-color: #f4f4f4;
+      background-size: 1920 × 1080 px;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    h1 { text-align: center; }
+    #admin-login, #admin-section { display: none; text-align: center; margin-top: 20px; }
+    iframe { display: block; width: 800px; height: 600px; display: none; margin-top: 20px auto; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    #doc-list 
+{ text-align: center; margin-top: 20px; }
+    #logoContainer { text-align: center; margin-bottom: 20px; /*box-shadow: 0 2px 8px rgba(0,0,0,0.1);*/ }
+    #customLogo { max-height: 150px; }
+    #admin-button {
+  position: fixed;
+  bottom: 20px; /* 20px + 96px ≈ 1 pouce plus bas */
+  left: 20px;
+  /*transform: translateX(-50%);*/
+  z-index: 1000;
+}
+  </style>
+</head>
+<body>
+  <div id="logoContainer">
+    <img id="customLogo" src="" alt="Logo personnalisé">
+  </div>
+
+  <h1>Plateforme de Partage</h1>
+
+  <div id="doc-list"></div>
+  <div id="viewer"></div>
+
+  <div id="admin-button">
+    <button id="show-login">Accès Administrateur</button>
+  </div>
+
+  <div id="admin-login">
+    <input type="password" id="admin-password" placeholder="Mot de passe admin">
+    <button id="validate-admin">Entrer</button>
+  </div>
+
+  <div id="admin-section">
+    <h2>Interface Admin</h2>
+    <input type="text" id="doc-name" placeholder="Nom du document">
+    <input type="file" id="doc-file" accept="application/pdf">
+    <button id="add-doc">Ajouter Document</button>
+
+    <div style="margin-top:20px;">
+      <label for="logoInput">📁 Charger un logo :</label>
+      <input type="file" id="logoInput" accept="image/*">
+    </div>
+
+    <div style="margin-top:20px;">
+      <label for="bgColor">🎨 Couleur de fond :</label>
+      <input type="color" id="bgColor">
+      <label for="bgImage" style="margin-left:20px;">🖼️ Image de fond :</label>
+      <input type="file" id="bgImage" accept="image/*">
+    </div>
+
+    <div id="admin-controls"></div>
+    <button id="logout-admin">Déconnexion</button>
+  </div>
+
+  <script>
+    let documents = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadDocuments();
+
+      const showLogin = document.getElementById("show-login");
+      const validate = document.getElementById("validate-admin");
+      const addDoc = document.getElementById("add-doc");
+      const logoutBtn = document.getElementById("logout-admin");
+
+      showLogin.onclick = () => {
+        document.getElementById("admin-login").style.display = "block";
+      };
+
+      validate.onclick = () => {
+        const pwd = document.getElementById("admin-password").value;
+        if (pwd === "admin123") {
+          document.getElementById("admin-section").style.display = "block";
+          document.getElementById("admin-login").style.display = "none";
+          renderAdminControls();
+        } else {
+          alert("Mot de passe incorrect");
+        }
+      };
+
+      logoutBtn.onclick = () => {
+        document.getElementById("admin-section").style.display = "none";
+        document.getElementById("admin-password").value = "";
+      };
+
+      addDoc.onclick = () => {
+        const name = document.getElementById("doc-name").value;
+        const file = document.getElementById("doc-file").files[0];
+        if (!name || !file || file.type !== "application/pdf") {
+          alert("Nom ou fichier invalide");
+          return;
+        }
+
+        if (documents.some(doc => doc.name === name)) {
+          alert("Un document avec ce nom existe déjà.");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          documents.push({ name, base64: e.target.result });
+          localStorage.setItem("documents", JSON.stringify(documents));
+          renderList();
+          renderAdminControls();
+        };
+        reader.readAsDataURL(file);
+      };
+
+      document.getElementById("logoInput")?.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const logoDataURL = e.target.result;
+          document.getElementById("customLogo").src = logoDataURL;
+          localStorage.setItem("customLogo", logoDataURL);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById("bgColor")?.addEventListener("input", (e) => {
+        const color = e.target.value;
+        document.body.style.backgroundColor = color;
+        document.body.style.backgroundImage = "";
+        localStorage.setItem("backgroundColor", color);
+        localStorage.removeItem("backgroundImage");
+      });
+
+      document.getElementById("bgImage")?.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const imageDataURL = event.target.result;
+          document.body.style.backgroundImage = `url(${imageDataURL})`;
+          document.body.style.backgroundColor = "";
+          localStorage.setItem("backgroundImage", imageDataURL);
+          localStorage.removeItem("backgroundColor");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      function loadDocuments() {
+        const saved = localStorage.getItem("documents");
+        if (saved) {
+          documents = JSON.parse(saved);
+          renderList();
+        }
+
+        const savedLogo = localStorage.getItem("customLogo");
+        if (savedLogo) {
+          document.getElementById("customLogo").src = savedLogo;
+        }
+
+        const savedImage = localStorage.getItem("backgroundImage");
+        const savedColor = localStorage.getItem("backgroundColor");
+
+        if (savedImage) {
+          document.body.style.backgroundImage = `url(${savedImage})`;
+          document.body.style.backgroundColor = "";
+        } else if (savedColor) {
+          document.body.style.backgroundColor = savedColor;
+          document.body.style.backgroundImage = "";
+        }
+      }
+
+      function renderList() {
+        const list = document.getElementById("doc-list");
+        const viewer = document.getElementById("viewer");
+        list.innerHTML = "";
+        viewer.innerHTML = "";
+
+        documents.forEach((doc, index) => {
+          const btn = document.createElement("button");
+          btn.textContent = doc.name;
+          btn.onclick = () => {
+            viewer.innerHTML = "";
+            const wrapper = document.createElement("div");
+wrapper.style.textAlign = "center";
+
+const iframe = document.createElement("iframe");
+iframe.src = doc.base64;
+iframe.style.display = "inline-block";
+iframe.style.width = "800px";
+iframe.style.height = "600px";
+iframe.style.border = "1px solid #ccc";
+iframe.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+
+wrapper.appendChild(iframe);
+viewer.appendChild(wrapper);
+
+
+          };
+          list.appendChild(btn);
+        });
+      }
+
+      function renderAdminControls() {
+        const adminDiv = document.getElementById("admin-controls");
+        adminDiv.innerHTML = "";
+
+        documents.forEach((doc, index) => {
+          const div = document.createElement("div");
+          div.textContent = doc.name + " ";
+
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "Supprimer";
+          delBtn.onclick = () => {
+            if (confirm("Voulez-vous vraiment supprimer ce document ?")) {
+              documents.splice(index, 1);
+              localStorage.setItem("documents", JSON.stringify(documents));
+              renderList();
+              renderAdminControls();
+            }
+          };
+          div.appendChild(delBtn);
+          adminDiv.appendChild(div);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
