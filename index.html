@@ -152,10 +152,18 @@
             if (window.innerWidth < 768) {
               window.open(doc.url, "_blank");
             } else {
-              const iframe = document.createElement("iframe");
-              iframe.src = doc.url;
-              wrapper.appendChild(iframe);
-              viewer.appendChild(wrapper);
+              if (window.innerWidth < 768) {
+  window.open(doc.url, "_blank");
+  const notice = document.createElement("p");
+  notice.textContent = "📱 Le document s'est ouvert dans un nouvel onglet pour une meilleure lecture sur mobile.";
+  notice.style.textAlign = "center";
+  viewer.appendChild(notice);
+} else {
+  const iframe = document.createElement("iframe");
+  iframe.src = doc.url;
+  wrapper.appendChild(iframe);
+  viewer.appendChild(wrapper);
+}
             }
           };
           list.appendChild(btn);
@@ -176,3 +184,4 @@
   </script>
 </body>
 </html>
+
