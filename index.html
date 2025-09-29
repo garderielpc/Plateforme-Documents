@@ -31,7 +31,6 @@
       z-index: 1000;
     }
 
-    /* ✅ Adaptation mobile */
     @media (max-width: 768px) {
       iframe {
         width: 100%;
@@ -145,25 +144,17 @@
           const btn = document.createElement("button");
           btn.textContent = doc.name;
           btn.onclick = () => {
-            viewer.innerHTML = "";
-            const wrapper = document.createElement("div");
-            wrapper.style.textAlign = "center";
-
             if (window.innerWidth < 768) {
-              window.open(doc.url, "_blank");
+              window.location.href = doc.url;
             } else {
-              if (window.innerWidth < 768) {
-  window.open(doc.url, "_blank");
-  const notice = document.createElement("p");
-  notice.textContent = "📱 Le document s'est ouvert dans un nouvel onglet pour une meilleure lecture sur mobile.";
-  notice.style.textAlign = "center";
-  viewer.appendChild(notice);
-} else {
-  const iframe = document.createElement("iframe");
-  iframe.src = doc.url;
-  wrapper.appendChild(iframe);
-  viewer.appendChild(wrapper);
-}
+              viewer.innerHTML = "";
+              const wrapper = document.createElement("div");
+              wrapper.style.textAlign = "center";
+
+              const iframe = document.createElement("iframe");
+              iframe.src = doc.url;
+              wrapper.appendChild(iframe);
+              viewer.appendChild(wrapper);
             }
           };
           list.appendChild(btn);
@@ -184,4 +175,3 @@
   </script>
 </body>
 </html>
-
