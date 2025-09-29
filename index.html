@@ -8,6 +8,7 @@
       font-family: Arial;
       margin: 20px;
       background-color: #f4f4f4;
+      background-image: url("docs/paper_texture_14.jpg");
       background-size: cover;
       background-repeat: no-repeat;
       background-position: center;
@@ -36,8 +37,9 @@
     /* ✅ Amélioration mobile */
     @media (max-width: 768px) {
       body {
-        background-size: contain;
-        background-position: top center;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
       }
       iframe {
         width: 100%;
@@ -188,18 +190,14 @@
             const wrapper = document.createElement("div");
             wrapper.style.textAlign = "center";
 
-            const iframe = document.createElement("iframe");
-            iframe.src = doc.url;
-
-            // ✅ Amélioration mobile : ouvrir dans un nouvel onglet
-            iframe.onload = () => {
-              if (window.innerWidth < 768) {
-                window.open(doc.url, "_blank");
-              }
-            };
-
-            wrapper.appendChild(iframe);
-            viewer.appendChild(wrapper);
+            if (window.innerWidth < 768) {
+              window.open(doc.url, "_blank");
+            } else {
+              const iframe = document.createElement("iframe");
+              iframe.src = doc.url;
+              wrapper.appendChild(iframe);
+              viewer.appendChild(wrapper);
+            }
           };
           list.appendChild(btn);
         });
