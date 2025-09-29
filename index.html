@@ -48,7 +48,7 @@
 
   <div id="admin-section">
     <h2>Interface Admin</h2>
-    <p>Les documents doivent être ajoutés dans le dossier <strong>/docs</strong> du dépôt GitHub.</p>
+    <p>Les documents doivent être ajoutés dans le dossier <strong>/docs</strong> du dépôt GitHub, et listés dans <strong>documents.json</strong>.</p>
 
     <div style="margin-top:20px;">
       <label for="logoInput">📁 Charger un logo :</label>
@@ -67,15 +67,19 @@
   </div>
 
   <script>
-    const documents = [
-      { name: "Menu d'octobre", url: "docs/menu-octobre.pdf" },
-      { name: "Calendrier des activités", url: "docs/calendrier-activites.pdf" },
-      { name: "Politique éducative", url: "docs/politique-educative.pdf" }
-      // Ajoute ici autant de documents que tu veux
-    ];
+    let documents = [];
 
     document.addEventListener("DOMContentLoaded", () => {
-      renderList();
+      fetch("docs/documents.json")
+        .then(response => response.json())
+        .then(data => {
+          documents = data;
+          renderList();
+          renderAdminControls();
+        })
+        .catch(error => {
+          console.error("Erreur lors du chargement des documents :", error);
+        });
 
       const showLogin = document.getElementById("show-login");
       const validate = document.getElementById("validate-admin");
